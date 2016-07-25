@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.IO;
 
-namespace OCR
+namespace ImageToText
 {
     class OCRmain
     {
@@ -18,8 +18,8 @@ namespace OCR
             {
                 OCR ocr = new OCR();
                 ocr.mpStartOCR(args[1]);
-                Parser.ParserMain.ParseOthers("tempOCRresults.txt", args[2]);
-                Dossier.Utilities.mpDeleteTemporalFile("tempOCRresults.txt");
+                URLtoText.ParserMain.ParseOthers("tempOCRresults.txt", args[2]);
+                DossierParser.Utilities.mpDeleteTemporalFile("tempOCRresults.txt");
 
             }
             else

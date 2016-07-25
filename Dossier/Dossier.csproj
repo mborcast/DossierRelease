@@ -7,8 +7,8 @@
     <ProjectGuid>{3EBCFD21-1C7F-4492-834D-3A478412D3C9}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Dossier</RootNamespace>
-    <AssemblyName>dossier</AssemblyName>
+    <RootNamespace>DossierParser</RootNamespace>
+    <AssemblyName>dossierParser</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
@@ -45,6 +45,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\dossierParser.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibCurlNet">

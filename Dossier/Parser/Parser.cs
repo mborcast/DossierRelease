@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
-namespace Parser
+namespace URLtoText
 {
     enum eDictionaries { ESP  = 1, ENG = 2 }
     enum eParseType    { HTML, TXT}
 
     class Parser
     {
-        List<Dossier.BinarySearchTree<string>> aDictionaryCollection;
-        Dossier.BinarySearchTree<string> aBlack;
+        List<DossierParser.BinarySearchTree<string>> aDictionaryCollection;
+        DossierParser.BinarySearchTree<string> aBlack;
 
         IParsing      aParsingType;
         StringBuilder aResultString;
@@ -22,9 +22,9 @@ namespace Parser
                       aDataWithoutSpChars;
 
         /// <summary>
-        /// Class constructor. Builds the given dictionary and blacklist trees.
+        /// Constructor. Define los archivos de diccionarios y de lista negra a ser cargados.
         /// </summary>
-        /// <param name="pLangSelection">Dictionary selection flag</param>
+        /// <param name="pLangSelection">Flag para seleccionar los idiomas a utilizar.</param>
         public Parser(eDictionaries pLangSelection)
         {
             List<string> lDictionaryPaths = new List<string>();
@@ -42,9 +42,9 @@ namespace Parser
         }
 
         /// <summary>
-        /// Sets the proper interface type
+        /// Asigna el tipo de interfase a utilizar.
         /// </summary>
-        /// <param name="pParsingType">Selection enum variable</param>
+        /// <param name="pParsingType">Enumerado de selección</param>
         public void mpSetParsingType(eParseType pParsingType)
         {
             switch (pParsingType)
@@ -63,9 +63,9 @@ namespace Parser
         }
 
         /// <summary>
-        /// Reads all denied words from file and loads them into a binary tree.
+        /// Lee las palabras prohibidas de un archivo de lista negra y las carga en un árbol binario.
         /// </summary>
-        /// <param name="pBlackPath">Path to blacklist text file.</param>
+        /// <param name="pBlackPath">Ruta del archivo de lista negra a leer.</param>
         protected void mpBuildBlack(string pBlackPath)
         {
             Console.Write("Building blacklist tree from: {0}", pBlackPath);
@@ -79,30 +79,30 @@ namespace Parser
             }
             catch (FileNotFoundException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. Blacklist file not found.");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. Blacklist file not found.");
                 return;
             }
 
-            aBlack = new Dossier.BinarySearchTree<string>();
+            aBlack = new DossierParser.BinarySearchTree<string>();
 
             foreach (string lBlackWord in lInput)
             {
                 aBlack.Insert(lBlackWord);
             }
             
-            Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> LOADED");
+            DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> LOADED");
         }
 
         /// <summary>
-        /// Reads all words from each file specified in the paths list and loads them into their own binary tree.
+        /// Lee todas las palabras contenidas en el archivo especificado en cada una de las rutas de una lista de diccionarios habilitados y las carga en su propio árbol binario.
         /// </summary>
-        /// <param name="pDictionarypaths">List with all the paths to dictionary files.</param>
+        /// <param name="pDictionarypaths">Lista que contiene las rutas de los archivos de diccionario a utilizar.</param>
         protected void mpBuildDictionaries(ref List<string> pDictionarypaths)
         {
             if (pDictionarypaths.Count > 0)
             {
                 char[] lSeparator = { '\n', '\r' };
-                this.aDictionaryCollection = new List<Dossier.BinarySearchTree<string>>();
+                this.aDictionaryCollection = new List<DossierParser.BinarySearchTree<string>>();
 
                 foreach (string lPath in pDictionarypaths)
                 {
@@ -115,29 +115,29 @@ namespace Parser
                     }
                     catch (FileNotFoundException)
                     {
-                        Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> Dictionary file not found");
+                        DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> Dictionary file not found");
                         continue;
                     }
 
-                    Dossier.BinarySearchTree<string> lNewDictionary = new Dossier.BinarySearchTree<string>();
+                    DossierParser.BinarySearchTree<string> lNewDictionary = new DossierParser.BinarySearchTree<string>();
 
                     foreach (string lDictionaryEntry in lCurrentInput)
                     {
                         lNewDictionary.Insert(lDictionaryEntry);
                     }
                     aDictionaryCollection.Add(lNewDictionary);
-                    Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> LOADED");
+                    DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> LOADED");
                 }
             }
             else
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> No dictionary files found");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> No dictionary files found");
             }
 
         }
 
         /// <summary>
-        /// Removes all special characters in aDataToParse (StringBuilder variable)
+        /// Filtra el texto contenido en "aDataToParse" para conservar vocales y consonantes únicamente.
         /// </summary>
         void mpRemoveSpecialChars()
         {
@@ -145,7 +145,7 @@ namespace Parser
 
             if (aDataToParse == null)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to parse");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to parse");
                 return;
             }
 
@@ -229,12 +229,12 @@ namespace Parser
                 lNewWord.Clear();
             }
 
-            Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
+            DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
         }
 
         /// <summary>
-        /// <para>Filters out any denied or mispelled words: Any word contained in the blacklist or not found in the dictionaries is discarded, the remaining words are appended to the aResultString.</para>
-        /// <para>A word is first compared against the blacklist and then against each of the loaded dictionary binary trees.</para>
+        /// Compara cada una de las palabras en "aDataWithoutSpChars" contra todos los diccionarios y la lista negra de manera que toda palabra
+        /// prohibida o mal escrita sea descartada.
         /// </summary>
         void mpCompareAgainstDictionary()
         {
@@ -242,13 +242,13 @@ namespace Parser
 
             if (aDataWithoutSpChars == null) 
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to parse or compare with");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to parse or compare with");
                 return;
             }
 
             if (aDictionaryCollection == null)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No dictionaries loaded"); 
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No dictionaries loaded"); 
                 return;
             }
 
@@ -258,7 +258,7 @@ namespace Parser
 
             lBufferA = this.aDataWithoutSpChars;
 
-            foreach (Dossier.BinarySearchTree<string> lDictionary in this.aDictionaryCollection)
+            foreach (DossierParser.BinarySearchTree<string> lDictionary in this.aDictionaryCollection)
             {
                 foreach (string lWord in lBufferA)
                 {
@@ -288,19 +288,20 @@ namespace Parser
 
             if (aResultString.Length > 0)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>>> COMPLETE");
+                DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>>> COMPLETE");
             }
             else
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>>> FAILED. Not a single match was found");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>>> FAILED. Not a single match was found");
             }
         }
 
         /// <summary>
-        /// Gets data from a single URL or a text file by calling the appropiate overriden function in the aParsingType interface object and outputs results into a text file.
+        /// Parsea la información de una URL o un archivo de texto para luego imprimirla en un archivo de texto.
         /// </summary>
-        public void mpParse(string pPath, string pOutFilePath) 
+        public void mpParse(string pPath, string pOutFilePath)
         {
+            // Calls the appropiate overriden function in the aParsingType interface object
             aDataToParse = aParsingType.GetDataToParse(pPath);
 
             if (aDataToParse != null)
@@ -314,17 +315,17 @@ namespace Parser
                 }
                 catch (NullReferenceException)
                 {
-                    Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to write to file");
+                    DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> ERROR. No data to write to file");
                     return;
                 }
             }
         }
 
         /// <summary>
-        /// Gets data from all the URL's in the text file and outputs results for each one in its own file.
+        /// Parsea en batch la información de todas las URL especificadas en un archivo de texto para luego imprimirla en un archivo de texto para cada URL.
         /// </summary>
-        /// <param name="pURLfilePath"></param>
-        public void mpBatch(string pURLfilePath)
+        /// <param name="pURLfilePath">Ruta del archivo con todas las URL a analizar.</param>
+        public void mpBatch(string pURLfilePath, string pOutPattern)
         {
             char[] lSeparator = { '\n', '\r' };
             string[] lURLlist;
@@ -335,7 +336,7 @@ namespace Parser
             }
             catch (FileNotFoundException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. URL list file not found.");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. URL list file not found.");
                 return;
             }
 
@@ -347,7 +348,7 @@ namespace Parser
                 if (lURLlist[i].Length > 0 && lURLlist[i] != "")
                 {
                     Console.WriteLine("\n\n" + (i - lEmpty + 1) + " - Processing: " + lURLlist[i]);
-                    this.mpParse(lURLlist[i], (i - lEmpty + 1).ToString() + "batch.txt");
+                    this.mpParse(lURLlist[i], pOutPattern + (i - lEmpty + 1).ToString() + "txt");
                 }
                 else
                 {
@@ -357,9 +358,9 @@ namespace Parser
         }
 
         /// <summary>
-        /// Prints aResultString contents to a file.
+        /// Imprime las palabras parseadas a un archivo de texto si y sólo si se cuenta con datos.
         /// </summary>
-        /// <param name="pOutPath">Path to the output file.</param>
+        /// <param name="pOutPath">Ruta al archivo de salida.</param>
         void mpWriteParsedData(string pOutPath)
         {
             if (this.aResultString != null)
@@ -372,9 +373,10 @@ namespace Parser
         }
 
         /// <summary>
-        /// Returns true if uppercase, false otherwise.
+        /// Analiza si un caracter es una letra mayúscula o minúscula
         /// </summary>
         /// <param name="pLetter"></param>
+        /// <returns>True si la letra es mayúscula, falso de lo contrario.</returns>
         bool mfIsCapitalLetter(char pLetter)
         {
             return (pLetter >= 65 && pLetter <= 90);

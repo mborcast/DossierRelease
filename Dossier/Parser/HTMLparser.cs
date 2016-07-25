@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace Parser
+namespace URLtoText
 {
     class HTMLparser : IParsing
     {
         /// <summary>
-        /// <para>Curls data from given URL path and writes it into a temporal file.</para>
-        /// <para>This temporal file will be filtered to extract text only from certain html tags.</para>
+        /// Realiza una transferencia con cURL para obtener información e imprimirla en un archivo de texto: "temporal.txt"
+        /// Dicho archivo es filtrado para eliminar tags HTML y conservar únicamente texto.
         /// </summary>
-        /// <param name="pPath">URL to curl data from</param>
-        /// <returns>Filtered text from html tags</returns>
+        /// <param name="pPath">URL con la cual se hará la transferencia</param>
+        /// <returns>Lista con líneas de texto extraídas del código HTML de la URL proporcionada.</returns>
         public List<string> GetDataToParse(string pPath)
         {
             if (CurlBehaviour.mfCurlAndWrite(pPath, "temporal.txt"))
@@ -30,7 +30,7 @@ namespace Parser
                 }
                 catch (FileNotFoundException)
                 {
-                    Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. No temporal file found.");
+                    DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. No temporal file found.");
                     return null;
                 }
 
@@ -196,8 +196,8 @@ namespace Parser
                         lNewWord.Clear();
                     }
                 }
-                Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
-                Dossier.Utilities.mpDeleteTemporalFile("temporal.txt");
+                DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
+                DossierParser.Utilities.mpDeleteTemporalFile("temporal.txt");
                 return lResult;
             }
 

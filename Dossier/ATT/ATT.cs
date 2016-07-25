@@ -11,7 +11,7 @@ using System.Globalization;
 
 using NAudio.Wave;
 
-namespace ATT
+namespace AudioToText
 {
     class ATT
     {
@@ -20,7 +20,7 @@ namespace ATT
         Grammar                 aDictationGrammar;
 
         /// <summary>
-        /// Class constructor. Inits speech recognition engine.
+        /// Constructor. Inicializa el Speech Recognition Engine de Microsoft para reconocer palabras en español.
         /// </summary>
         public ATT()
         {
@@ -39,11 +39,11 @@ namespace ATT
         }
 
         /// <summary>
-        /// Reads file extension and converts to .wav format.
+        /// Analiza la extensión del archivo de audio y de ser necesario, lo convierte a un formato .wav
         /// </summary>
-        /// <param name="pAudioPath"></param>
-        /// <param name="pOutPath"></param>
-        /// <returns></returns>
+        /// <param name="pAudioPath">Ruta del archivo de audio a analizar.</param>
+        /// <param name="pOutPath">Ruta del nuevo archivo de audio convertido</param>
+        /// <returns>Devuelve la ruta del nuevo archivo de audio convertido</returns>
         public string mfConvertIfNotWaveFile(string pAudioPath, string pOutPath)
         {
             Console.Write("Input audio file: " + pAudioPath);
@@ -51,7 +51,7 @@ namespace ATT
             // Convert to wav if has other format
             if (Path.GetExtension(pAudioPath) != ".wav")
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Yellow, " >>>> CONVERTING TO .wav FILE");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Yellow, " >>>> CONVERTING TO .wav FILE");
 
                 MediaFoundationReader lReader = new MediaFoundationReader(pAudioPath);
                 WaveFileWriter.CreateWaveFile(pOutPath, lReader);
@@ -64,7 +64,7 @@ namespace ATT
                 else
                 {
                     //conversion failed
-                    Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. CONVERSION FAILED");
+                    DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. CONVERSION FAILED");
                     return null;
                 }
             }
@@ -73,6 +73,12 @@ namespace ATT
             return pAudioPath;
         }
 
+        /// <summary>
+        /// Realiza el reconocimiento de un audio con formato .wav exclusivamente. 
+        /// Este proceso continuará hasta que el engine no detecte más segmentos reconocibles.
+        /// Cada resultado obtenido se adjunta en la variable "aResultString"
+        /// </summary>
+        /// <param name="pWavePath"></param>
         public void mpStartSpeechRecognition(string pWavePath)
         {
             Console.WriteLine("Recognizing text from: " + pWavePath);
@@ -84,17 +90,17 @@ namespace ATT
             }
             catch (InvalidOperationException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. AUDIO FILES ONLY");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. AUDIO FILES ONLY");
                 return;
             }
             catch (FormatException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. WAVE FILES ONLY");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. WAVE FILES ONLY");
                 return;
             }
             catch (FileNotFoundException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. FILE NOT FOUND");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. FILE NOT FOUND");
                 return;
             }
 
@@ -114,7 +120,7 @@ namespace ATT
                 catch
                 {
                     //break whenever no more audio is recognized
-                    Dossier.Utilities.mpPrint(ConsoleColor.White, "\n >>>> Recognition Complete\n");
+                    DossierParser.Utilities.mpPrint(ConsoleColor.White, "\n >>>> Recognition Complete\n");
                     Console.WriteLine(aResultString.ToString());
                     break;
                 }
@@ -122,29 +128,45 @@ namespace ATT
             while (lRecognizedText != null);
         }
 
+        /// <summary>
+        /// Imprime un aviso en consola cada vez que el engine detecta un segmento reconocible.
+        /// </summary>
         void _speechRecognitionEngine_SpeechDetected(object sender, SpeechDetectedEventArgs e)
         {
-            Dossier.Utilities.mpPrint(ConsoleColor.White, " + Speech segment detected", false);
+            DossierParser.Utilities.mpPrint(ConsoleColor.White, " + Speech segment detected", false);
         }
 
+        /// <summary>
+        /// Imprime un aviso en consola cada vez que el engine finaliza de procesar un segmento detectado previamente.
+        /// </summary>
         void _speechRecognitionEngine_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
+            DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
         }
 
-        public void mpWriteResultsToFile(string pOutPath)
+        /// <summary>
+        /// Imprime el texto obtenido en un archivo de texto si y solo si se encontraron resultados.
+        /// </summary>
+        /// <param name="pOutPath">Ruta del archivo de salida</param>
+        public bool mfWriteResultsToFile(string pOutPath)
         {
             try
             {
                 if (aResultString.Length > 0)
                 {
                     File.WriteAllText(pOutPath, this.aResultString.ToString(), Encoding.UTF8);
+                    return true;
+                }
+                else
+                {
+                    DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. No results to write.");
                 }
             }
             catch (NullReferenceException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. No data");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. No data");
             }
+            return false;
         }
     }
 }

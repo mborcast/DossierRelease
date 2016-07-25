@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using ImageMagick;
 using System.IO;
 
-namespace OCR
+namespace ImageToText
 {
     class ImageProcessing
     {
         /// <summary>
-        /// Resizes image if its current dimensions create license conflicts
+        /// Escala una imagen para evitar restricciones de licencia de la librería OCR.
         /// </summary>
-        /// <param name="pImage">Image to resize</param>
+        /// <param name="pImage">Ruta de la imagen a analizar.</param>
         static void mpResizeToAvoidLicenseException(ref MagickImage pImage)
         {
             int lImgWidth = pImage.Width;
@@ -32,10 +32,10 @@ namespace OCR
         }
 
         /// <summary>
-        /// Apply transformations to image and save as a temporal file.
+        /// Aplica un conjunto de transformaciones para hacer más nítida una imagen. La imagen resultante es guardada como una copia en un archivo temporal.
         /// </summary>
-        /// <param name="pImagePath">Path to image to be transformed</param>
-        /// <returns></returns>
+        /// <param name="pImagePath">Ruta de la imagen a analizar.</param>
+        /// <returns>Devuelve la ruta del archivo temporal generado.</returns>
         public static string mfProcessAndSaveAsNewImage(string pImagePath)
         {
             MagickImage lImage;

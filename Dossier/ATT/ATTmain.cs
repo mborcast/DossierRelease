@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using NReco.VideoConverter;
 
-namespace ATT
+namespace AudioToText
 {
     class ATTmain
     {
@@ -19,11 +19,11 @@ namespace ATT
 
 
         /// <summary>
-        /// Run FFT.exe, creates "tempFiltered.wav"
+        /// Ejecuta el programa (FFT.exe) de filtro de frecuencias. El archivo de audio filtrado se crea como una copia temporal: "tempFiltered.wav"
         /// </summary>
-        /// <param name="pWaveFilePath"></param>
-        /// <param name="pLowerPass"></param>
-        /// <param name="pUpperPass"></param>
+        /// <param name="pWaveFilePath">Ruta del archivo de audio en formato .wav</param>
+        /// <param name="pLowerPass">Parámetro opcional. Límite inferior de corte de frecuencia.</param>
+        /// <param name="pUpperPass">Parámetro opcional. Límite superior de corte de frecuencia.</param>
         static void mpLaunchFrequencyFilter(string pWaveFilePath, int pLowerPass, int pUpperPass)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -45,14 +45,15 @@ namespace ATT
         }
 
         /// <summary>
-        /// <para> May create "tempWave.wav and erases it after recognition finishes </para>
-        /// <para> Creates "tempATTresults.txt </para>
+        /// Realiza el reconocimiento de texto en un archivo de audio.
+        /// Si dicho archivo requiere convertirse a .wav, se crea una copia temporal en este formato: "tempWave.wav"
+        /// El texto resultante del reconocimiento es enviado al archivo temporal: "tempATTresults.txt"
         /// </summary>
-        /// <param name="pAudioPathToRecognizeFrom"></param>
-        /// <param name="pFilterAudio"></param>
-        /// <param name="pLowerPass"></param>
-        /// <param name="pUpperPass"></param>
-        static void mpRecognizeTextFrom(string pAudioPathToRecognizeFrom, bool pFilterAudio=false, int pLowerPass=-1, int pUpperPass=-1)
+        /// <param name="pAudioPathToRecognizeFrom">Ruta del archivo de audio a analizar.</param>
+        /// <param name="pFilterAudio">Parámetro opcional. Aplicar el filtrado de frecuencias al archivo de audio?.</param>
+        /// <param name="pLowerPass">Parámetro opcional. Límite inferior de corte de frecuencia.</param>
+        /// <param name="pUpperPass">Parámetro opcional. Límite superior de corte de frecuencia.</param>
+        static bool mfRecognizeTextFrom(string pAudioPathToRecognizeFrom, bool pFilterAudio=false, int pLowerPass=-1, int pUpperPass=-1)
         {
             if (pAudioPathToRecognizeFrom != null)
             {
@@ -65,35 +66,49 @@ namespace ATT
                     if (pFilterAudio)
                     {
                         mpLaunchFrequencyFilter(lWavePath, pLowerPass, pUpperPass);
-                        audio2Text.mpStartSpeechRecognition(TEMP_FILTERED_FILE_PATH);
+                        if (File.Exists(TEMP_FILTERED_FILE_PATH))
+                        {
+                            audio2Text.mpStartSpeechRecognition(TEMP_FILTERED_FILE_PATH);
+                        }
+                        else
+                        {
+                            DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. Wave file could not be filtered.");
+                            DossierParser.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FILE_PATH);
+                            return false;
+                        }
                     }
                     else
                     {
                         audio2Text.mpStartSpeechRecognition(lWavePath);
                     }
 
-                    audio2Text.mpWriteResultsToFile(TEMP_ATT_RESULTS_PATH);
+                    if (!audio2Text.mfWriteResultsToFile(TEMP_ATT_RESULTS_PATH))
+                    {
+                        return false;
+                    }
                 }
 
                 if (File.Exists(TEMP_WAVE_FILE_PATH))
                 {
-                    Dossier.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FILE_PATH);
+                    DossierParser.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FILE_PATH);
                 }
                 if (File.Exists(TEMP_FILTERED_FILE_PATH))
                 {
-                    Dossier.Utilities.mpDeleteTemporalFile(TEMP_FILTERED_FILE_PATH);
+                    DossierParser.Utilities.mpDeleteTemporalFile(TEMP_FILTERED_FILE_PATH);
                 }
+                return true;
             }
             else
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. AUDIO FILE DOES NOT EXIST");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. AUDIO FILE DOES NOT EXIST");
+                return false;
             }
         }
 
         /// <summary>
-        /// 
+        /// Guarda el audio de un archivo de video en el archivo temporal: "tempWavFromVideo.wav"
         /// </summary>
-        /// <param name="pVideoPath"></param>
+        /// <param name="pVideoPath">Ruta del archivo de video a analizar.</param>
         static void mpCreateWaveFileFromVideo(string pVideoPath)
         {
             try
@@ -102,7 +117,7 @@ namespace ATT
             }
             catch (FileNotFoundException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. VIDEO FILE DOES NOT EXIST");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. VIDEO FILE DOES NOT EXIST");
             }
         }
 
@@ -115,19 +130,19 @@ namespace ATT
                 switch(args[0])
                 {
                 case "audio": // => Recognition from a wave file WITHOUT filtering
-                    mpRecognizeTextFrom(args[1]);
+                    mfRecognizeTextFrom(args[1]);
 
-                    Parser.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[2]);
-                    Dossier.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
+                    URLtoText.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[2]);
+                    DossierParser.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
                     break;
                 case "video": // => Recognition from a video file WITHOUT filtering
                     mpCreateWaveFileFromVideo(args[1]);
-                    mpRecognizeTextFrom(TEMP_WAVE_FROM_VIDEO_PATH);
+                    mfRecognizeTextFrom(TEMP_WAVE_FROM_VIDEO_PATH);
 
-                    Parser.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[2]);
+                    URLtoText.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[2]);
 
-                    Dossier.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FROM_VIDEO_PATH);
-                    Dossier.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
+                    DossierParser.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FROM_VIDEO_PATH);
+                    DossierParser.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
                     break;
                 default:
                     break;
@@ -140,19 +155,22 @@ namespace ATT
                     switch (args[0])
                     {
                         case "audio": // => Recognition from a wave file WITH filtering
-                            mpRecognizeTextFrom(args[4], true, Convert.ToInt32(args[2]), Convert.ToInt32(args[3]));
-                            Parser.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[5]);
+                            if (mfRecognizeTextFrom(args[4], true, Convert.ToInt32(args[2]), Convert.ToInt32(args[3])))
+                            {
+                                URLtoText.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[5]);
+                            }
 
-                            Dossier.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
+                            DossierParser.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
                             break;
                         case "video": // => Recognition from a video file WITH filtering
                             mpCreateWaveFileFromVideo(args[4]);
-                            mpRecognizeTextFrom(TEMP_WAVE_FROM_VIDEO_PATH, true, Convert.ToInt32(args[2]), Convert.ToInt32(args[3]));
+                            if (mfRecognizeTextFrom(TEMP_WAVE_FROM_VIDEO_PATH, true, Convert.ToInt32(args[2]), Convert.ToInt32(args[3])))
+                            {
+                                URLtoText.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[5]);
+                            }
 
-                            Parser.ParserMain.ParseOthers(TEMP_ATT_RESULTS_PATH, args[5]);
-
-                            Dossier.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FROM_VIDEO_PATH);
-                            Dossier.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
+                            DossierParser.Utilities.mpDeleteTemporalFile(TEMP_WAVE_FROM_VIDEO_PATH);
+                            DossierParser.Utilities.mpDeleteTemporalFile(TEMP_ATT_RESULTS_PATH);
                             break;
                         default:
                             break;

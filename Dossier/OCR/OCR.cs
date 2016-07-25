@@ -6,13 +6,16 @@ using System.Threading.Tasks;
 using Patagames.Ocr;
 using System.IO;
 
-namespace OCR
+namespace ImageToText
 {
     class OCR
     {
         OcrApi        aHandler;
         StringBuilder aRecognizedText;
 
+        /// <summary>
+        /// Constructor. Inicializa la librería OCR.
+        /// </summary>
         public OCR()
         {
             aHandler        = OcrApi.Create();
@@ -21,9 +24,9 @@ namespace OCR
         }
 
         /// <summary>
-        /// Starts OCR on given image.
+        /// Aplica el reconocimiento de texto en una imagen.
         /// </summary>
-        /// <param name="pImagePath">Image to evaluate.</param>
+        /// <param name="pImagePath">Ruta de la imagen a analizar.</param>
         public void mpStartOCR(string pImagePath)
         {
             string lPathToTemporal = ImageProcessing.mfProcessAndSaveAsNewImage(pImagePath);
@@ -57,7 +60,7 @@ namespace OCR
                 {
                     Console.WriteLine(" >>>> FAILED. NO DATA");
                 }
-                Dossier.Utilities.mpDeleteTemporalFile(lPathToTemporal);
+                DossierParser.Utilities.mpDeleteTemporalFile(lPathToTemporal);
             }
 
         }

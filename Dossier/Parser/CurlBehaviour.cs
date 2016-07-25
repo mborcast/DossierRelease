@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using SeasideResearch.LibCurlNet;
 using System.IO;
 
-namespace Parser
+namespace URLtoText
 {
     class CurlBehaviour
     {
@@ -14,19 +14,28 @@ namespace Parser
         static CURLcode      aCURLcode;
         static Easy          aCurlHandler;
 
+        /// <summary>
+        /// Callback para extraer la información devuelta por cURL.
+        /// </summary>
         static Int32 OnCurlResponse(Byte[] buf, Int32 size, Int32 nmemb, Object extraData)
         {
             aURLdata.Append(System.Text.Encoding.UTF8.GetString(buf));
             return size * nmemb;
         }
 
+        /// <summary>
+        /// Llama a cURL para extraer información de una URL, la respuesta obtenida es impresa en un archivo de texto.
+        /// </summary>
+        /// <param name="pURL">URL de la cual se extraerá información.</param>
+        /// <param name="pOutPath">Ruta del archivo de salida con la información obtenida de la URL.</param>
+        /// <returns>True si la transferencia fue exitosa; false ante el rediccionamiento a otra página, si la URL es una página de infotecnia o si la transferencia falló.</returns>
         public static bool mfCurlAndWrite(string pURL, string pOutPath)
         {
             bool lResult = false;
 
             if (pURL.Contains("infotecnia"))
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Yellow, " >>>> Aborting. Infotecnia URLs are not allowed.");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Yellow, " >>>> Aborting. Infotecnia URLs are not allowed.");
                 return false;
             }
 
@@ -65,7 +74,7 @@ namespace Parser
 
                     if (!lResponseUrl.Equals(pURL))
                     {
-                        Dossier.Utilities.mpPrint(ConsoleColor.Yellow, " >>>>> Aborting. Request and Response URLs mismatch");
+                        DossierParser.Utilities.mpPrint(ConsoleColor.Yellow, " >>>>> Aborting. Request and Response URLs mismatch");
                         return false;
                     }
 
@@ -74,7 +83,7 @@ namespace Parser
                 }
                 else
                 {
-                    Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> " + aCURLcode + ": " + aCurlHandler.StrError(aCURLcode));
+                    DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> " + aCURLcode + ": " + aCurlHandler.StrError(aCURLcode));
                     lResult = false;
                 }
 

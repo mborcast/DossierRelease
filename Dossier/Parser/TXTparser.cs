@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace Parser
+namespace URLtoText
 {
     class TXTparser : IParsing
     {
         /// <summary>
-        /// Returns data read from given file.
+        /// Carga la información de un archivo de texto en una lista.
         /// </summary>
-        /// <param name="pPath">Path to text file</param>
-        /// <returns></returns>
+        /// <param name="pPath">Ruta al archivo de texto a analizar.</param>
+        /// <returns>Una lista con las líneas de texto contenidas en el archivo</returns>
         public List<string> GetDataToParse(string pPath)
         {
             Console.Write("Reading file: " + pPath);
@@ -27,7 +27,7 @@ namespace Parser
             }
             catch (FileNotFoundException)
             {
-                Dossier.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. NO TXT FILE FOUND");
+                DossierParser.Utilities.mpPrint(ConsoleColor.Red, " >>>> FAILED. NO TXT FILE FOUND");
                 return null;
             }
 
@@ -38,7 +38,7 @@ namespace Parser
                 lResult.Add(lWord.ToString());
             }
 
-            Dossier.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
+            DossierParser.Utilities.mpPrint(ConsoleColor.White, " >>>> DONE");
             return lResult;
         }
     }

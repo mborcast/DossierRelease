@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace Dossier
+namespace DossierParser
 {
     public class BinarySearchTree<T> where T : IComparable<T>
     {
